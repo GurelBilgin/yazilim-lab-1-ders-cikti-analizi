@@ -5,6 +5,7 @@ import unittest
 import pandas as pd
 
 from ders_cikti_analizi.processor import (
+    build_tablo4_rows,
     calculate_student_scores,
     generate_tablo3,
     normalize_percentages,
@@ -88,8 +89,27 @@ class ProcessorTests(unittest.TestCase):
 
             self.assertTrue(outputs["tablo3"].exists())
             self.assertTrue(outputs["tablo4"].exists())
-            tablo4 = pd.read_excel(outputs["tablo4"], sheet_name="Ogrenci_Basarilari")
-            self.assertEqual(len(tablo4), 4)
+            tablo4 = pd.read_excel(outputs["tablo4"], sheet_name="Sheet1", header=None)
+            self.assertEqual(tablo4.iloc[0, 0], "Öğrenci : 220500001")
+            self.assertEqual(tablo4.iloc[1, 0], "Ders Çıktı")
+            self.assertEqual(tablo4.iloc[5, 0], "Öğrenci : 220500002")
+
+    def test_build_tablo4_rows_uses_student_blocks(self):
+        tablo3 = generate_tablo3(self.table2, self.percentages)
+        grades = pd.DataFrame(
+            {
+                "Öğrenci_No": ["220500001"],
+                "Öd1": [100],
+                "Öd2": [50],
+                "Quiz": [80],
+                "Vize": [70],
+                "Fin": [60],
+            }
+        )
+        rows = build_tablo4_rows(calculate_student_scores(tablo3, grades))
+        self.assertEqual(rows[0][0], "Öğrenci : 220500001")
+        self.assertEqual(rows[1], ["Ders Çıktı", "Öd1", "Öd2", "Quiz", "Vize", "Fin", "Toplam", "Max", "%Başarı"])
+        self.assertEqual(len(rows), 4)
 
 
 if __name__ == "__main__":

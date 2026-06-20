@@ -10,7 +10,6 @@ Bu proje, Excel dosyaları üzerinden ders çıktısı bazında öğrenci başar
 - Tablo 3 ağırlıklı katsayı tablosunu oluşturma
 - Tüm öğrenciler için ders çıktısı bazında başarı hesaplama
 - Tablo 4 öğrenci başarı çıktısını Excel olarak üretme
-- Ders çıktısı bazında ortalama başarı özetini ayrı Excel sayfasına yazma
 - Komut satırından parametreli veya etkileşimli çalıştırma
 - Test edilebilir modüler Python yapısı
 
@@ -90,10 +89,17 @@ outputs/Tablo3_Output.xlsx
 outputs/Tablo4_Output.xlsx
 ```
 
-`Tablo4_Output.xlsx` içinde iki sayfa bulunur:
+`Tablo3_Output.xlsx` dosyası tek sayfada, ödevdeki örnek çıktı formatına uygun olarak oluşturulur.
 
-- `Ogrenci_Basarilari`: Her öğrencinin ders çıktısı bazında başarı değerleri
-- `Ozet`: Ders çıktısı bazında ortalama, minimum ve maksimum başarı değerleri
+`Tablo4_Output.xlsx` dosyası da tek sayfada oluşturulur. Her öğrenci için şu blok düzeni kullanılır:
+
+```text
+Öğrenci : öğrenci_no
+Ders Çıktı | Öd1 | Öd2 | Quiz | Vize | Fin | Toplam | Max | %Başarı
+...ders çıktısı satırları...
+```
+
+Öğrenciler arasında bir boş satır bırakılır. Bu yapı, özgün ödev çıktısındaki `Tablo4_Output.xlsx` düzeniyle uyumludur.
 
 ## Testler
 
@@ -105,9 +111,8 @@ python -m unittest discover -s tests -v
 
 Önceki tek dosyalı yapı yerine veri okuma, hesaplama ve komut satırı arayüzü ayrı modüllere ayrılmıştır. Böylece hesaplama fonksiyonları arayüzden bağımsız olarak test edilebilir ve proje GitHub üzerinde daha düzenli bir yapıyla sunulabilir.
 
-## Hazırlayanlar
+## Hazırlayan
 
 - Gürel Bilgin
-- Gizem Yalçın
-- Yerdinat Alikhan
-- Berkay Aras
+
+Bu proje, Yazılım Lab 1 dersi Proje 2 kapsamında geliştirilmiştir.

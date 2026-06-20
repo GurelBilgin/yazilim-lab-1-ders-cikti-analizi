@@ -10,6 +10,7 @@ import pandas as pd
 ASSESSMENT_COLUMNS = ["Öd1", "Öd2", "Quiz", "Vize", "Fin"]
 TABLE2_COLUMNS = ["Ders Çıktı", *ASSESSMENT_COLUMNS]
 STUDENT_ID_COLUMN = "Öğrenci_No"
+STUDENT_ORDER_COLUMN = "_ogrenci_sira"
 
 
 def normalize_percentages(percentages: Mapping[str, float]) -> dict[str, float]:
@@ -100,11 +101,18 @@ def generate_tablo3(table2: pd.DataFrame, percentages: Mapping[str, float]) -> p
 
 
 def calculate_student_scores(tablo3: pd.DataFrame, grades: pd.DataFrame) -> pd.DataFrame:
-    """Her öğrenci için ders çıktısı bazında toplam ve başarı yüzdesi hesaplar."""
+    """Her öğrenci için ders çıktısı bazında toplam ve başarı yüzdesi hesaplar.
+
+    Hesaplama, ödevde istenen özgün çıktı düzeniyle uyumludur:
+    her öğrencinin notu Tablo 3 katsayısı ile çarpılır, toplam değer
+    hesaplanır, maksimum değer ise ilgili ders çıktısının toplam katsayısının
+    100 ile çarpılmasıyla bulunur. ``%Başarı`` değeri bir ondalık basamağa
+    yuvarlanır.
+    """
 
     rows: list[dict[str, object]] = []
 
-    for _, student in grades.iterrows():
+    for student_order, (_, student) in enumerate(grades.iterrows()):
         student_id = student[STUDENT_ID_COLUMN]
 
         for _, outcome in tablo3.iterrows():
@@ -118,16 +126,46 @@ def calculate_student_scores(tablo3: pd.DataFrame, grades: pd.DataFrame) -> pd.D
 
             rows.append(
                 {
+                    STUDENT_ORDER_COLUMN: student_order,
                     STUDENT_ID_COLUMN: student_id,
                     "Ders Çıktı": outcome["Ders Çıktı"],
                     **detail_values,
-                    "Toplam": round(total, 2),
-                    "Max": round(max_value, 2),
+                    "Toplam": total,
+                    "Max": max_value,
                     "%Başarı": round(success_rate, 1),
                 }
             )
 
     return pd.DataFrame(rows)
+
+
+def build_tablo4_rows(scores: pd.DataFrame) -> list[list[object]]:
+    """Tablo 4 dosyasını ödevdeki bloklu öğrenci formatına dönüştürür.
+
+    Çıktı dosyasında her öğrenci için önce ``Öğrenci : ...`` satırı,
+    ardından başlık satırı ve ders çıktısı başarı satırları yer alır.
+    Öğrenciler arasında bir boş satır bırakılır.
+    """
+
+    output_columns = ["Ders Çıktı", *ASSESSMENT_COLUMNS, "Toplam", "Max", "%Başarı"]
+    rows: list[list[object]] = []
+
+    group_column = STUDENT_ORDER_COLUMN if STUDENT_ORDER_COLUMN in scores.columns else STUDENT_ID_COLUMN
+
+    for _, group in scores.groupby(group_column, sort=False):
+        student_id = group.iloc[0][STUDENT_ID_COLUMN]
+        rows.append([f"Öğrenci : {student_id}", "", "", "", "", "", "", "", ""])
+        rows.append(output_columns)
+
+        for _, score in group.iterrows():
+            rows.append([score[column] for column in output_columns])
+
+        rows.append(["", "", "", "", "", "", "", "", ""])
+
+    if rows:
+        rows.pop()  # Son öğrenciden sonra fazladan boş satır bırakma.
+
+    return rows
 
 
 def summarize_scores(scores: pd.DataFrame) -> pd.DataFrame:
@@ -165,7 +203,12 @@ def _format_excel_sheet(writer: pd.ExcelWriter, sheet_name: str, df: pd.DataFram
 
 
 def write_outputs(tablo3: pd.DataFrame, scores: pd.DataFrame, output_dir: str | Path) -> dict[str, Path]:
-    """Tablo 3, Tablo 4 ve özet çıktısını Excel dosyalarına yazar."""
+    """Tablo 3 ve Tablo 4 çıktılarını ödevdeki Excel düzeniyle yazar.
+
+    ``Tablo3_Output.xlsx`` tek sayfada ağırlıklı ders çıktısı tablosunu içerir.
+    ``Tablo4_Output.xlsx`` ise tek sayfada her öğrenciyi ayrı blok halinde
+    gösterir. Bu yapı, özgün ödev çıktısındaki formatla uyumludur.
+    """
 
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -173,16 +216,18 @@ def write_outputs(tablo3: pd.DataFrame, scores: pd.DataFrame, output_dir: str | 
     tablo3_file = output_path / "Tablo3_Output.xlsx"
     tablo4_file = output_path / "Tablo4_Output.xlsx"
 
-    with pd.ExcelWriter(tablo3_file, engine="xlsxwriter") as writer:
-        tablo3.to_excel(writer, index=False, sheet_name="Tablo3")
-        _format_excel_sheet(writer, "Tablo3", tablo3)
+    # Pandas varsayılan Excel çıktısı Sheet1 adıyla ve sade başlık biçimiyle
+    # ödevdeki Tablo 3 formatını üretir.
+    tablo3.to_excel(tablo3_file, index=False)
 
-    summary = summarize_scores(scores)
+    # Tablo 4, her öğrenci için bloklu yapıdadır. Bu nedenle DataFrame olarak
+    # doğrudan yazmak yerine satırlar tek tek aktarılır.
+    rows = build_tablo4_rows(scores)
     with pd.ExcelWriter(tablo4_file, engine="xlsxwriter") as writer:
-        scores.to_excel(writer, index=False, sheet_name="Ogrenci_Basarilari")
-        summary.to_excel(writer, index=False, sheet_name="Ozet")
-        _format_excel_sheet(writer, "Ogrenci_Basarilari", scores)
-        _format_excel_sheet(writer, "Ozet", summary)
+        workbook = writer.book
+        worksheet = workbook.add_worksheet()
+        for row_index, row in enumerate(rows):
+            worksheet.write_row(row_index, 0, row)
 
     return {"tablo3": tablo3_file, "tablo4": tablo4_file}
 
