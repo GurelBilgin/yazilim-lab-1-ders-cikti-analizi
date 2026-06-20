@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ders-cikti-analizi"
+version = "1.0.0"
+description = "Excel dosyaları üzerinden ders çıktısı başarı analizi yapan Python projesi."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas>=2.0",
+    "openpyxl>=3.1",
+    "xlsxwriter>=3.0",
+]
+
+[project.scripts]
+ders-cikti-analizi = "ders_cikti_analizi.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
