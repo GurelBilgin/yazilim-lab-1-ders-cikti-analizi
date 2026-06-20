@@ -1,17 +1,20 @@
 # Yazılım Lab 1 Proje 2 - Ders Çıktısı Başarı Analizi
 
-Bu proje, Excel dosyaları üzerinden ders çıktısı bazında öğrenci başarı analizi yapmak için geliştirilmiştir. Kullanıcıdan değerlendirme yüzdeleri alınır, Tablo 2'deki ders çıktısı-katsayı ilişkileri bu yüzdelerle çarpılarak Tablo 3 oluşturulur. Ardından öğrenci not tablosu kullanılarak her öğrenci için ders çıktısı başarı yüzdeleri hesaplanır ve Tablo 4 çıktısı üretilir.
+Bu proje, **Yazılım Lab 1 dersi Proje 2** kapsamında geliştirilmiş bir ders çıktısı ve öğrenci başarı analizi uygulamasıdır. Projede Excel dosyaları üzerinden ders çıktıları, değerlendirme türleri ve öğrenci notları işlenerek çıktı tabloları oluşturulur.
+
+Uygulama; `tablo2.xlsx` dosyasındaki ders çıktısı ve katsayı bilgilerini, kullanıcıdan alınan değerlendirme yüzdeleriyle birlikte işler. Daha sonra `not_tablosu.xlsx` dosyasındaki öğrenci notlarını kullanarak her öğrenci için ders çıktısı bazında başarı yüzdesi hesaplar.
 
 ## Özellikler
 
-- `tablo2.xlsx` dosyasından ders çıktısı ve değerlendirme katsayılarını okuma
-- `not_tablosu.xlsx` dosyasından öğrenci notlarını okuma
-- Öd1, Öd2, Quiz, Vize ve Final yüzdelerini kullanıcıdan alma
-- Tablo 3 ağırlıklı katsayı tablosunu oluşturma
-- Tüm öğrenciler için ders çıktısı bazında başarı hesaplama
-- Tablo 4 öğrenci başarı çıktısını Excel olarak üretme
-- Komut satırından parametreli veya etkileşimli çalıştırma
-- Test edilebilir modüler Python yapısı
+* Excel dosyalarından veri okuma
+* Ders çıktısı katsayılarını değerlendirme yüzdeleriyle çarpma
+* `Tablo3_Output.xlsx` çıktısını oluşturma
+* Öğrenci notlarına göre ders çıktısı başarı oranlarını hesaplama
+* `Tablo4_Output.xlsx` çıktısını ödev formatına uygun şekilde üretme
+* Her öğrenci için ayrı blok yapısında başarı tablosu oluşturma
+* Komut satırından parametreli veya etkileşimli çalıştırma
+* Modüler ve test edilebilir Python proje yapısı
+* Birim testleri ile hesaplama mantığını doğrulama
 
 ## Proje Yapısı
 
@@ -33,9 +36,19 @@ yazilim-lab-1-ders-cikti-analizi/
     └── test_processor.py
 ```
 
+## Kullanılan Teknolojiler
+
+* Python
+* pandas
+* openpyxl
+* xlsxwriter
+* unittest
+
 ## Kurulum
 
 Python 3.10 veya üzeri önerilir.
+
+Proje klasöründe aşağıdaki komut çalıştırılır:
 
 ```bash
 python -m pip install -e .
@@ -43,21 +56,15 @@ python -m pip install -e .
 
 Bu komut proje bağımlılıklarını kurar ve komut satırı aracını kullanılabilir hâle getirir.
 
-## Kullanılan Kütüphaneler
-
-- `pandas`
-- `openpyxl`
-- `xlsxwriter`
-
 ## Çalıştırma
 
-Komut satırından yüzdeleri parametre olarak vererek çalıştırabilirsiniz:
+Program, değerlendirme yüzdeleri parametre olarak verilerek çalıştırılabilir:
 
 ```bash
 ders-cikti-analizi --od1 10 --od2 10 --quiz 10 --vize 30 --fin 40
 ```
 
-Alternatif olarak Python modülü üzerinden çalıştırabilirsiniz:
+Alternatif olarak Python modülü üzerinden çalıştırılabilir:
 
 ```bash
 python -m ders_cikti_analizi.cli --od1 10 --od2 10 --quiz 10 --vize 30 --fin 40
@@ -74,7 +81,7 @@ data/tablo2.xlsx
 data/not_tablosu.xlsx
 ```
 
-İsterseniz farklı dosya yolları da verebilirsiniz:
+Farklı dosya yolları kullanılmak istenirse aşağıdaki gibi parametre verilebilir:
 
 ```bash
 python -m ders_cikti_analizi.cli --tablo2 data/tablo2.xlsx --not-tablosu data/not_tablosu.xlsx --output-dir outputs --od1 10 --od2 10 --quiz 10 --vize 30 --fin 40
@@ -82,16 +89,24 @@ python -m ders_cikti_analizi.cli --tablo2 data/tablo2.xlsx --not-tablosu data/no
 
 ## Çıktı Dosyaları
 
-Program çalıştıktan sonra `outputs/` klasöründe şu dosyalar oluşturulur:
+Program çalıştırıldıktan sonra `outputs/` klasöründe şu dosyalar oluşturulur:
 
 ```text
 outputs/Tablo3_Output.xlsx
 outputs/Tablo4_Output.xlsx
 ```
 
-`Tablo3_Output.xlsx` dosyası tek sayfada, ödevdeki örnek çıktı formatına uygun olarak oluşturulur.
+### Tablo3_Output.xlsx
 
-`Tablo4_Output.xlsx` dosyası da tek sayfada oluşturulur. Her öğrenci için şu blok düzeni kullanılır:
+`Tablo3_Output.xlsx`, ders çıktısı ve değerlendirme türleri arasındaki katsayıların kullanıcı tarafından girilen yüzdelerle çarpılması sonucunda oluşturulur.
+
+Bu dosya tek sayfa olarak hazırlanır ve ödevde istenen çıktı formatına uygun şekilde üretilir.
+
+### Tablo4_Output.xlsx
+
+`Tablo4_Output.xlsx`, her öğrenci için ders çıktısı bazında başarı yüzdesini gösterir.
+
+Çıktı dosyasında her öğrenci ayrı bir blok olarak yer alır:
 
 ```text
 Öğrenci : öğrenci_no
@@ -99,20 +114,27 @@ Ders Çıktı | Öd1 | Öd2 | Quiz | Vize | Fin | Toplam | Max | %Başarı
 ...ders çıktısı satırları...
 ```
 
-Öğrenciler arasında bir boş satır bırakılır. Bu yapı, özgün ödev çıktısındaki `Tablo4_Output.xlsx` düzeniyle uyumludur.
+Her öğrenci bloğu arasında boş satır bırakılır. Bu yapı, ödevde verilen özgün çıktı formatıyla uyumludur.
 
 ## Testler
+
+Projedeki testleri çalıştırmak için:
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
+Testler, ders çıktısı hesaplama, yüzde hesaplama ve çıktı formatına yönelik temel işlevlerin doğru çalıştığını kontrol eder.
+
 ## Geliştirme Notları
 
-Önceki tek dosyalı yapı yerine veri okuma, hesaplama ve komut satırı arayüzü ayrı modüllere ayrılmıştır. Böylece hesaplama fonksiyonları arayüzden bağımsız olarak test edilebilir ve proje GitHub üzerinde daha düzenli bir yapıyla sunulabilir.
+Proje ilk hâlinde tek dosyalı bir yapıdaydı. Güncel sürümde veri okuma, hesaplama ve komut satırı arayüzü ayrı modüllere ayrılmıştır. Böylece proje hem daha okunabilir hâle getirilmiş hem de GitHub üzerinde daha düzenli bir şekilde sunulmuştur.
 
-## Hazırlayan
+Çıktı dosyaları doğrudan repoya eklenmez. Program çalıştırıldığında `outputs/` klasörü içinde yeniden oluşturulur.
 
-- Gürel Bilgin
+## Hazırlayanlar
 
-Bu proje, Yazılım Lab 1 dersi Proje 2 kapsamında geliştirilmiştir.
+* Gürel BİLGİN
+* Gizem YALÇIN
+* Yerdinat ALİKHAN
+* Berkay ARAS
